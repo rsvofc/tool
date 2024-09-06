@@ -53,7 +53,7 @@ read -p "Your Name : " name1
     if [ -z $name1 ]; then
     echo -e "${RED}Empty name, then use a random Name${NC}"
     rname=$(</dev/urandom tr -dc 0-9 | head -c5)
-    name=$('RSV${rname}')
+    name="RSV${rname}"
     echo $name > /etc/.vvt/name
     else
     echo $name1 > /etc/.vvt/name
@@ -254,7 +254,7 @@ apt install -y screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzi
 export DEBIAN_FRONTEND=noninteractive
 MYIP=$(wget -qO- ipinfo.io/ip);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
-NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
+#NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
 source /etc/os-release
 ver=$VERSION_ID
 #link="https://gitlab.com/kenzo6414537/vvt/-/raw/main"
@@ -548,6 +548,11 @@ END
 wget -q -O /etc/init.d/stunnel5 "${link}/stunnel5.init"
 
 # Ubah Izin Akses
+# make a certificate
+openssl genrsa -out key.pem 2048
+openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
+-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
+cat key.pem cert.pem >> /etc/stunnel5/stunnel5.pem
 chmod 600 /etc/stunnel5/stunnel5.pem
 chmod +x /etc/init.d/stunnel5
 cp /usr/local/bin/stunnel /usr/local/bin/stunnel5
@@ -565,12 +570,6 @@ systemctl stop stunnel5
 systemctl enable stunnel5
 systemctl start stunnel5
 systemctl restart stunnel5
-
-# make a certificate
-openssl genrsa -out key.pem 2048
-openssl req -new -x509 -key key.pem -out cert.pem -days 1095 \
--subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-cat key.pem cert.pem >> /etc/stunnel/stunnel.pem
 
 # install fail2ban
 apt -y install fail2ban
