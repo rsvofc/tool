@@ -257,7 +257,7 @@ MYIP2="s/xxxxxxxxx/$MYIP/g";
 #NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
 source /etc/os-release
 ver=$VERSION_ID
-link="https://gitlab.com/kenzo6414537/vvt/-/raw/main"
+#link="https://gitlab.com/kenzo6414537/vvt/-/raw/main"
 #detail nama perusahaan
 country="ID"
 state="Jakarta"
