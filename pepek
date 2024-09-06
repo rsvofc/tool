@@ -1,0 +1,85 @@
+#!/bin/bash
+
+while true; do
+    users=($(grep '^###' /etc/xray/config.json | awk '{print $2}' | sort | uniq))
+
+    if [[ ! -e /etc/lmt ]]; then
+        mkdir -p /etc/lmt
+    fi
+
+    if [[ ! -e /etc/usg ]]; then
+        mkdir -p /etc/usg
+    fi
+    online_users=()
+    while IFS= read -r line; do
+        email=$(echo "$line" | grep -oP '(?<=email: )\S+')
+        if [[ "${users[*]}" =~ "$email" ]]; then
+            online_users+=("$email")
+        fi
+    done < <(grep -F 'email:' /var/log/xray/access.log)
+
+    for user in "${online_users[@]}"; do
+        xray_stats=$(xray api stats --server=127.0.0.1:10085 -name "user>>>${user}>>>traffic>>>downlink")
+        
+        if [[ ${xray_stats} == *"not found"* ]]; then
+            echo "User ${user} is offline or has no traffic statistics available. Skipping."
+            continue
+        fi
+
+        if [[ ${xray_stats} == *"failed"* ]]; then
+            echo "Failed to get statistics for user ${user}. Skipping."
+            continue
+        fi
+
+        downlink=$(echo "${xray_stats}" | grep -w "value" | awk '{print $2}' | cut -d '"' -f2)
+        user_file="/etc/usg/${user}"
+        if [ -f "$user_file" ]; then
+            plus2=$(cat "$user_file")
+            if [[ ${#plus2} -gt 0 ]]; then
+                plus3=$(( downlink + plus2 ))
+                echo "${plus3}" > "$user_file"
+            else
+                echo "${downlink}" > "$user_file"
+            fi
+        else
+            echo "${downlink}" > "$user_file"
+        fi
+
+        xray api stats --server=127.0.0.1:10085 -name "user>>>${user}>>>traffic>>>downlink" -reset > /dev/null 2>&1
+    done
+
+    for user in "${online_users[@]}"; do
+        user_file="/etc/usg/${user}"
+        if [ -f "$user_file" ]; then
+            USAGE=$(cat "$user_file")
+            limit_file="/etc/lmt/${user}"
+            if [ -f "$limit_file" ]; then
+                LIMIT=$(cat "$limit_file")
+                if [[ ${#LIMIT} -gt 1 ]]; then
+                    if [[ ${USAGE} -gt ${LIMIT} ]]; then
+                        exp=$(grep -w "^### ${user}" "/etc/xray/config.json" | awk '{print $3}' | sort | uniq)
+                        user_files=(
+                         "/etc/client/vls.txt"
+                         "/etc/client/vms.txt"
+                         "/etc/client/trj.txt"
+                        )
+                         sed -i "/^### ${user} ${exp}/,/^},{/d" /etc/xray/config.json
+
+                        for file in "${user_files[@]}"; do
+                         sed -i "/### ${user} ${exp}$/d" "$file"
+                         echo "### ${user} ${exp}" >> "/root/limitxray.log"
+                         rm -rf /etc/xraylog/log-vmess-$user.txt
+                         rm -rf /etc/xraylog/log-vless-$user.txt
+                         rm -rf /etc/xraylog/log-trojan-$user.txt
+                        done
+                        rm "$limit_file"
+                        rm "$user_file"
+                        cleaner
+                        sudo systemctl restart xray
+                    fi
+                fi
+            fi
+        fi
+    done
+    sleep 10
+done
