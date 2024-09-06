@@ -53,7 +53,7 @@ read -p "Your Name : " name1
     if [ -z $name1 ]; then
     echo -e "${RED}Empty name, then use a random Name${NC}"
     rname=$(</dev/urandom tr -dc 0-9 | head -c5)
-    name="RSV${rname}"
+    name=$('RSV${rname}')
     echo $name > /etc/.vvt/name
     else
     echo $name1 > /etc/.vvt/name
@@ -254,7 +254,7 @@ apt install -y screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzi
 export DEBIAN_FRONTEND=noninteractive
 MYIP=$(wget -qO- ipinfo.io/ip);
 MYIP2="s/xxxxxxxxx/$MYIP/g";
-#NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
+NET=$(ip -o $ANU -4 route show to default | awk '{print $5}');
 source /etc/os-release
 ver=$VERSION_ID
 #link="https://gitlab.com/kenzo6414537/vvt/-/raw/main"
@@ -367,7 +367,6 @@ apt install g++ -y
 apt install libreadline-dev -y
 apt install zlib1g-dev -y
 apt install libssl-dev -y
-apt install libssl1.0-dev -y
 apt install dos2unix -y
 #
 
@@ -380,7 +379,7 @@ apt -y install wget curl
 #figlet
 apt-get install figlet -y
 apt install lolcat -y
-gem install lolcat -y
+gem install lolcat
 
 # set time GMT +7
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
@@ -534,7 +533,7 @@ END
 cat > /etc/systemd/system/stunnel5.service << END
 [Unit]
 Description=Stunnel5 Service
-Documentation=${link}
+Documentation=RSV
 After=syslog.target network-online.target
 
 [Service]
@@ -546,7 +545,7 @@ WantedBy=multi-user.target
 END
 
 # Service Stunnel5 /etc/init.d/stunnel5
-wget -q -O /etc/init.d/stunnel5 "${link}/websocketv2/file/stunnel5.init"
+wget -q -O /etc/init.d/stunnel5 "${link}/stunnel5.init"
 
 # Ubah Izin Akses
 chmod 600 /etc/stunnel5/stunnel5.pem
