@@ -49,14 +49,14 @@ MYIP=$(curl -sS ipv4.icanhazip.com)
 echo $MYIP > /etc/.vvt/ipv4
 echo $ipv4 > /etc/.vvt/ip
 
-read -p "Your Name : " name
-    if [ -z $name ]; then
+read -p "Your Name : " name1
+    if [ -z $name1 ]; then
     echo -e "${RED}Empty name, then use a random Name${NC}"
     rname=$(</dev/urandom tr -dc 0-9 | head -c5)
     name=$('RSV${rname}')
     echo $name > /etc/.vvt/name
     else
-    echo $name > /etc/.vvt/name
+    echo $name1 > /etc/.vvt/name
     fi
     
 IP1=$(curl -sS ipv4.icanhazip.com)
