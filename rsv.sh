@@ -456,9 +456,6 @@ cd
 rm -rf dropbear-2018.76
 rm *.bz2
 cd
-cd
-apt -y install sslh
-rm -f /etc/default/sslh
 # install stunnel
 apt install stunnel4 -y
 cat > /etc/stunnel/stunnel.conf <<-END
