@@ -53,7 +53,7 @@ read -p "Your Name : " name1
     if [ -z $name1 ]; then
     echo -e "${RED}Empty name, then use a random Name${NC}"
     rname=$(</dev/urandom tr -dc 0-9 | head -c5)
-    name=$('RSV${rname}')
+    name="RSV${rname}"
     echo $name > /etc/.vvt/name
     else
     echo $name1 > /etc/.vvt/name
