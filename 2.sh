@@ -34,7 +34,7 @@ red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 link="https://raw.githubusercontent.com/rsvofc/tool/rsv/"
 #install backup
 green "Installing Rclone"
-curl -O ${link}/rclone-current-linux-amd64.zip
+wget -q https://raw.githubusercontent.com/rsvofc/tool/rsv/rclone-current-linux-amd64.zip
 unzip rclone-current-linux-amd64.zip
 cd rclone-*-linux-amd64
 sudo cp rclone /usr/bin/
