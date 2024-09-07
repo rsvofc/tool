@@ -300,7 +300,12 @@ echo -e "                      Backup notif to Bot"
 echo ""
 red " © Zenvio 2021-2024"
 rm /root/install >/dev/null 2>&1
-
+rm /root/1.sh >/dev/null 2>&10
+rm /root/2.sh >/dev/null 2>&10
+rm /root/3.sh >/dev/null 2>&10
+rm /root/4.sh >/dev/null 2>&10
+rm /root/5.sh >/dev/null 2>&10
+rm /root/6.sh >/dev/null 2>&10
 echo -e ""
 red "Warning !!"
 echo "Reboot in 10 Seconds"
