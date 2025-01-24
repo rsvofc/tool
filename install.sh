@@ -105,7 +105,7 @@ compile_obash() {
     mkdir -p /root/rsv/encryptlfile
     clear
     cd /usr/bin
-    wget -q -O rsvenc "https://codeberg.org/kenzoevalia/cangcingcung/raw/branch/main/encryptor.sh" && chmod +x rsvenc
+    wget -q -O rsvenc "https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/encryptor.sh" && chmod +x rsvenc
 
     echo -e "${GREEN}[SUKSES] Berhasil diinstal${NC}"
     rm -rf install.sh
