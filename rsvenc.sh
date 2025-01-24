@@ -56,7 +56,7 @@ check_os_support() {
                     echo -e "Terdeteksi ${GREEN}Ubuntu $VERSION${NC}"
                     echo -e "${GREEN}OS Supported bosku"
                     sleep 5
-                    LINK="wget -q wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/install.sh && chmod +x install.sh && ./install.sh"
+                    LINK="wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/install.sh && chmod +x install.sh && ./install.sh"
                     ;;
                 24.04)
                     echo -e "Terdeteksi ${GREEN}Ubuntu $VERSION${NC}"
