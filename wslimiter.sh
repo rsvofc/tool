@@ -190,7 +190,8 @@ perform_speedtest() {
         speedtest --version
     fi
 
-    # Jalankan speedtest
+    # Jalankan Speedtest
+    clear
     echo -e "${CYAN}Running speed test...${NC}"
     speedtest
 }
