@@ -26,7 +26,7 @@ validate_interface() {
     return 0
 }
 
-# Function to validate speed (minimum 5 Mbps)
+# Function to validate speed (minimum 1 Mbps)
 validate_speed() {
     local speed=$1
     if ! [[ "$speed" =~ ^[0-9]+$ ]]; then
@@ -40,31 +40,30 @@ validate_speed() {
     return 0
 }
 
-# Function to check current tc status
+# Improved function to check current tc status
 check_status() {
     local interface=$1
     echo -e "${CYAN}Current Traffic Control Status for $interface${NC}"
     echo -e "============================================"
     
-    # Debug: Show raw tc output
-    echo -e "\n${ORANGE}Debug: Raw TC Output${NC}"
-    echo -e "${BLUE}Ingress Rules:${NC}"
-    tc qdisc show dev "$interface" ingress 2>&1
-    tc filter show dev "$interface" parent ffff: 2>&1
-    echo -e "\n${BLUE}Egress Rules:${NC}"
-    tc qdisc show dev "$interface" root 2>&1
-    
-    echo -e "\n${CYAN}Formatted Status:${NC}"
-    echo -e "============================================"
+    # Check if there are any limits set
+    if ! tc qdisc show dev "$interface" | grep -q "tbf\|ingress"; then
+        echo -e "\n${ORANGE}No active traffic shaping rules found for $interface${NC}"
+        return
+    fi
     
     # Check Download Limit
     echo -e "\n${BLUE}Download Limit:${NC}"
     if tc qdisc show dev "$interface" ingress >/dev/null 2>&1; then
-        download_rate=$(tc filter show dev "$interface" parent ffff: 2>/dev/null | grep -oP "rate \K[0-9]+[KMG]?bit")
+        # Extract download rate from police
+        local download_rate=$(tc filter show dev "$interface" parent ffff: | grep "rate" | awk '{print $7}')
         if [[ -n "$download_rate" ]]; then
-            echo -e "Status  : ${GREEN}Active${NC}"
-            echo -e "Rate    : ${GREEN}$download_rate${NC}"
-            echo -e "Burst   : 32Kb"
+            # Convert to readable format
+            if [[ "$download_rate" == *"Mbit"* ]]; then
+                echo -e "Status  : ${GREEN}Active${NC}"
+                echo -e "Rate    : ${GREEN}${download_rate}${NC}"
+                echo -e "Burst   : 32Kb"
+            fi
         else
             echo -e "Status  : ${RED}Not set${NC}"
         fi
@@ -74,24 +73,21 @@ check_status() {
     
     # Check Upload Limit
     echo -e "\n${BLUE}Upload Limit:${NC}"
-    upload_info=$(tc qdisc show dev "$interface" root 2>/dev/null | grep "tbf")
+    local upload_info=$(tc qdisc show dev "$interface" root | grep "tbf")
     if [[ -n "$upload_info" ]]; then
-        upload_rate=$(echo "$upload_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
-        if [[ -n "$upload_rate" ]]; then
-            echo -e "Status  : ${GREEN}Active${NC}"
-            echo -e "Rate    : ${GREEN}$upload_rate${NC}"
-            echo -e "Burst   : 32Kb"
-            echo -e "Latency : 400ms"
-        else
-            echo -e "Status  : ${RED}Not set${NC}"
-        fi
+        local upload_rate=$(echo "$upload_info" | grep -oP 'rate \K[^ ]+')
+        echo -e "Status  : ${GREEN}Active${NC}"
+        echo -e "Rate    : ${GREEN}${upload_rate}${NC}"
+        echo -e "Burst   : 32Kb"
+        echo -e "Latency : 400ms"
     else
         echo -e "Status  : ${RED}Not set${NC}"
     fi
     
     echo -e "\n============================================"
-    read -p "Press Enter to continue..."
 }
+
+# [Rest of the script remains the same]
 
 # Function to set upload limit
 set_upload_limit() {
