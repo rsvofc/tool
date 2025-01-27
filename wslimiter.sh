@@ -10,6 +10,27 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 LIGHT='\033[0;37m'
 
+# Config file
+CONFIG_FILE="/etc/tc-manager.conf"
+
+# Function to load saved interface
+load_interface() {
+    if [ -f "$CONFIG_FILE" ]; then
+        interface=$(cat "$CONFIG_FILE")
+        if validate_interface "$interface"; then
+            echo -e "${GREEN}Loaded saved interface: $interface${NC}"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Function to save interface
+save_interface() {
+    echo "$1" > "$CONFIG_FILE"
+    chmod 644 "$CONFIG_FILE"
+}
+
 # Function to list active interfaces
 list_interfaces() {
     echo -e "${CYAN}Available network interfaces:${NC}"
@@ -45,25 +66,19 @@ check_status() {
     local interface=$1
     echo -e "${CYAN}Current Traffic Control Status for $interface${NC}"
     echo -e "============================================"
-    
-    # Check if there are any limits set
-    if ! tc qdisc show dev "$interface" | grep -q "tbf\|ingress"; then
-        echo -e "\n${ORANGE}No active traffic shaping rules found for $interface${NC}"
-        return
-    fi
+
+    local has_limits=false
     
     # Check Download Limit
     echo -e "\n${BLUE}Download Limit:${NC}"
     if tc qdisc show dev "$interface" ingress >/dev/null 2>&1; then
-        # Extract download rate from police
-        local download_rate=$(tc filter show dev "$interface" parent ffff: | grep "rate" | awk '{print $7}')
-        if [[ -n "$download_rate" ]]; then
-            # Convert to readable format
-            if [[ "$download_rate" == *"Mbit"* ]]; then
-                echo -e "Status  : ${GREEN}Active${NC}"
-                echo -e "Rate    : ${GREEN}${download_rate}${NC}"
-                echo -e "Burst   : 32Kb"
-            fi
+        local download_info=$(tc filter show dev "$interface" parent ffff: 2>/dev/null | grep "police rate")
+        if [[ -n "$download_info" ]]; then
+            has_limits=true
+            local download_rate=$(echo "$download_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
+            echo -e "Status  : ${GREEN}Active${NC}"
+            echo -e "Rate    : ${GREEN}$download_rate${NC}"
+            echo -e "Burst   : 32Kb"
         else
             echo -e "Status  : ${RED}Not set${NC}"
         fi
@@ -73,11 +88,12 @@ check_status() {
     
     # Check Upload Limit
     echo -e "\n${BLUE}Upload Limit:${NC}"
-    local upload_info=$(tc qdisc show dev "$interface" root | grep "tbf")
+    local upload_info=$(tc qdisc show dev "$interface" root 2>/dev/null | grep "tbf")
     if [[ -n "$upload_info" ]]; then
-        local upload_rate=$(echo "$upload_info" | grep -oP 'rate \K[^ ]+')
+        has_limits=true
+        local upload_rate=$(echo "$upload_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
         echo -e "Status  : ${GREEN}Active${NC}"
-        echo -e "Rate    : ${GREEN}${upload_rate}${NC}"
+        echo -e "Rate    : ${GREEN}$upload_rate${NC}"
         echo -e "Burst   : 32Kb"
         echo -e "Latency : 400ms"
     else
@@ -85,9 +101,13 @@ check_status() {
     fi
     
     echo -e "\n============================================"
-}
 
-# [Rest of the script remains the same]
+    if [ "$has_limits" = false ]; then
+        echo -e "${ORANGE}No traffic shaping rules are currently active on $interface${NC}"
+    fi
+
+    read -p "Press Enter to continue..."
+}
 
 # Function to set upload limit
 set_upload_limit() {
@@ -151,12 +171,18 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Try to load saved interface
+load_interface
+
 # Main menu
 while true; do
     clear
     echo -e "============================================"
     echo -e "${PURPLE}     Traffic Control Management Script${NC}"
     echo -e "============================================"
+    if [ -n "$interface" ]; then
+        echo -e "Current Interface: ${GREEN}$interface${NC}"
+    fi
     echo -e "1. Check/Change Active Interface"
     echo -e "2. Set Speed Limits"
     echo -e "3. Clear All Settings"
@@ -169,9 +195,12 @@ while true; do
     case $choice in
         1)
             list_interfaces
-            read -p "Enter interface name to use: " interface
-            if validate_interface "$interface"; then
+            read -p "Enter interface name to use: " new_interface
+            if validate_interface "$new_interface"; then
+                interface="$new_interface"
+                save_interface "$interface"
                 echo -e "${GREEN}Selected interface: $interface${NC}"
+                echo -e "${GREEN}Interface saved for future use${NC}"
                 sleep 2
             fi
             ;;
@@ -226,9 +255,9 @@ while true; do
         4)
             if [ -z "$interface" ]; then
                 echo -e "${RED}Please select an interface first (Option 1)${NC}"
+                sleep 2
             else
                 check_status "$interface"
-                read -p "Press Enter to continue..."
             fi
             ;;
         5)
