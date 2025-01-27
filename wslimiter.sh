@@ -61,7 +61,7 @@ validate_speed() {
     return 0
 }
 
-# Improved function to check current tc status
+# Function to check current tc status
 check_status() {
     local interface=$1
     echo -e "${CYAN}Current Traffic Control Status for $interface${NC}"
@@ -72,13 +72,17 @@ check_status() {
     # Check Download Limit
     echo -e "\n${BLUE}Download Limit:${NC}"
     if tc qdisc show dev "$interface" ingress >/dev/null 2>&1; then
-        local download_info=$(tc filter show dev "$interface" parent ffff: 2>/dev/null | grep "police rate")
-        if [[ -n "$download_info" ]]; then
+        local download_info=$(tc -s filter show dev "$interface" parent ffff: 2>/dev/null)
+        if echo "$download_info" | grep -q "police"; then
             has_limits=true
             local download_rate=$(echo "$download_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
-            echo -e "Status  : ${GREEN}Active${NC}"
-            echo -e "Rate    : ${GREEN}$download_rate${NC}"
-            echo -e "Burst   : 32Kb"
+            if [ -n "$download_rate" ]; then
+                echo -e "Status  : ${GREEN}Active${NC}"
+                echo -e "Rate    : ${GREEN}$download_rate${NC}"
+                echo -e "Burst   : 32Kb"
+            else
+                echo -e "Status  : ${RED}Not set${NC}"
+            fi
         else
             echo -e "Status  : ${RED}Not set${NC}"
         fi
