@@ -10,9 +10,9 @@ CYAN='\033[0;36m'
 LIGHT='\033[0;37m'
 clear
 echo -e "${GREEN}Bandwidth Limit Installer by RSV${NC}"
-sleep 5
 wget -q -O /usr/sbin/vpslimiter "https://raw.githubusercontent.com/rsvofc/tool/savina/wslimiter.sh"
 echo -e "${GREEN}Installed successfully!${NC}"
 echo -e "Ketik ${BLUE}[vpslimiter]${NC} untuk menjalankan"
 chmod +x /usr/sbin/vpslimiter
+rm -rf install.sh
 exit 0
