@@ -50,7 +50,7 @@ check_status() {
     if ! tc qdisc show dev "$interface" | grep -q "tbf\|ingress"; then
         echo -e "\n${ORANGE}No active traffic shaping rules found for $interface${NC}"
         return
-    }
+    fi
     
     # Check Download Limit
     echo -e "\n${BLUE}Download Limit:${NC}"
