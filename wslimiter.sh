@@ -78,7 +78,7 @@ check_status() {
             local download_rate=$(echo "$download_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
             if [ -n "$download_rate" ]; then
                 echo -e "Status  : ${GREEN}Active${NC}"
-                echo -e "Rate    : ${GREEN}$download_rate${NC}"
+                echo -e "Rate    : ${BLUE}$download_rate${NC}"
                 echo -e "Burst   : 32Kb"
             else
                 echo -e "Status  : ${RED}Not set${NC}"
@@ -97,9 +97,8 @@ check_status() {
         has_limits=true
         local upload_rate=$(echo "$upload_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
         echo -e "Status  : ${GREEN}Active${NC}"
-        echo -e "Rate    : ${GREEN}$upload_rate${NC}"
+        echo -e "Rate    : ${BLUE}$upload_rate${NC}"
         echo -e "Burst   : 32Kb"
-        echo -e "Latency : 400ms"
     else
         echo -e "Status  : ${RED}Not set${NC}"
     fi
@@ -165,6 +164,33 @@ clear_limits() {
 
 # Function to perform speed test
 perform_speedtest() {
+    echo -e "${CYAN}Checking for speedtest installation...${NC}"
+    
+    # Cek apakah speedtest terinstal
+    if ! command -v speedtest &> /dev/null; then
+        echo -e "${YELLOW}Speedtest not found. Installing Speedtest CLI...${NC}"
+        
+        # Unduh dan instal Speedtest Ookla via Binary Standalone
+        wget -O speedtest.tgz https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-x86_64.tgz
+        tar -xvzf speedtest.tgz
+        sudo mv speedtest /usr/local/bin/
+        sudo chmod +x /usr/local/bin/speedtest
+        sudo rm speedtest.*
+        
+        # Verifikasi instalasi
+        if command -v speedtest &> /dev/null; then
+            echo -e "${GREEN}Speedtest installed successfully! Version:${NC}"
+            speedtest --version
+        else
+            echo -e "${RED}Failed to install Speedtest. Please check manually.${NC}"
+            return 1
+        fi
+    else
+        echo -e "${GREEN}Speedtest is already installed. Version:${NC}"
+        speedtest --version
+    fi
+
+    # Jalankan speedtest
     echo -e "${CYAN}Running speed test...${NC}"
     speedtest
 }
