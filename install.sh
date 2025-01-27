@@ -14,6 +14,5 @@ sleep 5
 wget -q -O /usr/sbin/vpslimiter "https://raw.githubusercontent.com/rsvofc/tool/savina/wslimiter.sh"
 echo -e "${GREEN}Installed successfully!${NC}"
 echo -e "Ketik ${BLUE}[vpslimiter]${NC} untuk menjalankan"
-chmod +x /usr/sbin/wslimiter
-rm -rf install.sh
+chmod +x /usr/sbin/vpslimiter
 exit 0
