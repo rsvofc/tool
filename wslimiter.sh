@@ -46,24 +46,25 @@ check_status() {
     echo -e "${CYAN}Current Traffic Control Status for $interface${NC}"
     echo -e "============================================"
     
-    # Check if there are any limits set
-    if ! tc qdisc show dev "$interface" | grep -q "tbf\|ingress"; then
-        echo -e "\n${ORANGE}No active traffic shaping rules found for $interface${NC}"
-        return
-    fi
+    # Debug: Show raw tc output
+    echo -e "\n${ORANGE}Debug: Raw TC Output${NC}"
+    echo -e "${BLUE}Ingress Rules:${NC}"
+    tc qdisc show dev "$interface" ingress 2>&1
+    tc filter show dev "$interface" parent ffff: 2>&1
+    echo -e "\n${BLUE}Egress Rules:${NC}"
+    tc qdisc show dev "$interface" root 2>&1
+    
+    echo -e "\n${CYAN}Formatted Status:${NC}"
+    echo -e "============================================"
     
     # Check Download Limit
     echo -e "\n${BLUE}Download Limit:${NC}"
     if tc qdisc show dev "$interface" ingress >/dev/null 2>&1; then
-        # Extract download rate from police
-        local download_rate=$(tc filter show dev "$interface" parent ffff: | grep "rate" | awk '{print $7}')
+        download_rate=$(tc filter show dev "$interface" parent ffff: 2>/dev/null | grep -oP "rate \K[0-9]+[KMG]?bit")
         if [[ -n "$download_rate" ]]; then
-            # Convert to readable format
-            if [[ "$download_rate" == *"Mbit"* ]]; then
-                echo -e "Status  : ${GREEN}Active${NC}"
-                echo -e "Rate    : ${GREEN}${download_rate}${NC}"
-                echo -e "Burst   : 32Kb"
-            fi
+            echo -e "Status  : ${GREEN}Active${NC}"
+            echo -e "Rate    : ${GREEN}$download_rate${NC}"
+            echo -e "Burst   : 32Kb"
         else
             echo -e "Status  : ${RED}Not set${NC}"
         fi
@@ -73,18 +74,23 @@ check_status() {
     
     # Check Upload Limit
     echo -e "\n${BLUE}Upload Limit:${NC}"
-    local upload_info=$(tc qdisc show dev "$interface" root | grep "tbf")
+    upload_info=$(tc qdisc show dev "$interface" root 2>/dev/null | grep "tbf")
     if [[ -n "$upload_info" ]]; then
-        local upload_rate=$(echo "$upload_info" | grep -oP 'rate \K[^ ]+')
-        echo -e "Status  : ${GREEN}Active${NC}"
-        echo -e "Rate    : ${GREEN}${upload_rate}${NC}"
-        echo -e "Burst   : 32Kb"
-        echo -e "Latency : 400ms"
+        upload_rate=$(echo "$upload_info" | grep -oP "rate \K[0-9]+[KMG]?bit")
+        if [[ -n "$upload_rate" ]]; then
+            echo -e "Status  : ${GREEN}Active${NC}"
+            echo -e "Rate    : ${GREEN}$upload_rate${NC}"
+            echo -e "Burst   : 32Kb"
+            echo -e "Latency : 400ms"
+        else
+            echo -e "Status  : ${RED}Not set${NC}"
+        fi
     else
         echo -e "Status  : ${RED}Not set${NC}"
     fi
     
     echo -e "\n============================================"
+    read -p "Press Enter to continue..."
 }
 
 # Function to set upload limit
