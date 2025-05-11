@@ -1,7 +1,5 @@
 #!/bin/bash
-# Script untuk instalasi otomatis berdasarkan OS
 # Build by RSV
-# Celana Color
 RED='\033[0;31m'
 NC='\033[0m'
 GREEN='\033[0;32m'
@@ -15,7 +13,7 @@ tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
 yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
-# Fungsi untuk mendapatkan versi OS
+### Info Os // RSV Official 
 get_os_info() {
   echo -e "${LIGHT}Checking OS systemnya${NC}"
     if [ -f /etc/os-release ]; then
