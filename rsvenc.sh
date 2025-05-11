@@ -1,5 +1,7 @@
 #!/bin/bash
-# Build by RSV
+### Build by RSV // RSV Official
+## Origae ##
+
 RED='\033[0;31m'
 NC='\033[0m'
 GREEN='\033[0;32m'
@@ -13,8 +15,9 @@ tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
 yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
+
 ### Info Os // RSV Official 
-get_os_info() {
+info_os() {
   echo -e "${LIGHT}Checking OS systemnya${NC}"
     if [ -f /etc/os-release ]; then
         . /etc/os-release
@@ -26,7 +29,8 @@ get_os_info() {
     fi
 }
 
-check_os_support() {
+### Detail Os // RSV Official
+check_os() {
     case "$OS" in
         debian)
             case "$VERSION" in
@@ -34,13 +38,13 @@ check_os_support() {
                     echo -e "Terdeteksi ${GREEN}Debian $VERSION${NC}"
                     echo -e "${GREEN}OS Supported bosku"
                     sleep 5
-                    LINK="wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/install.sh && chmod +x install.sh && ./install.sh"
+                    LINK="wget -q https://script.vpnpro.biz.id/enc/v1/install.sh && chmod +x install.sh && ./install.sh"
                     ;;
                 12)
                     echo -e "Terdeteksi ${GREEN}Debian $VERSION${NC}"
                     echo -e "${GREEN}OS Supported bosku"
                     sleep 5
-                    LINK="wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/deb12/install.sh && chmod +x install.sh && ./install.sh"
+                    LINK="wget -q https://script.vpnpro.biz.id/enc/v2/install.sh && chmod +x install.sh && ./install.sh"
                     ;;
                 *)
                     echo -e "${RED}Debian versi $VERSION tidak didukung${NC}"
@@ -54,13 +58,13 @@ check_os_support() {
                     echo -e "Terdeteksi ${GREEN}Ubuntu $VERSION${NC}"
                     echo -e "${GREEN}OS Supported bosku"
                     sleep 5
-                    LINK="wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/install.sh && chmod +x install.sh && ./install.sh"
+                    LINK="wget -q https://script.vpnpro.biz.id/enc/v1/install.sh && chmod +x install.sh && ./install.sh"
                     ;;
                 24.04)
                     echo -e "Terdeteksi ${GREEN}Ubuntu $VERSION${NC}"
                     echo -e "${GREEN}OS Supported bosku"
                     sleep 5
-                    LINK="wget -q https://raw.githubusercontent.com/rsvofc/tool/refs/heads/main/deb12/install.sh && chmod +x install.sh && ./install.sh"
+                    LINK="wget -q https://script.vpnpro.biz.id/enc/v2/install.sh && chmod +x install.sh && ./install.sh"
                     ;;
                 *)
                     echo -e "${RED}Ubuntu versi $VERSION tidak didukung${NC}"
@@ -75,14 +79,15 @@ check_os_support() {
     esac
 }
 
-run_installation() {
+### Installasine // RSV Official
+genjot_install_boss() {
     echo -e "${GREEN}Installer Script by RSV${NC}"
     eval "$LINK"
     rm -rf rsvenc.sh
 }
 
-# Main script
-get_os_info
+### Main script // RSV Official
+info_os
 clear
-check_os_support
-run_installation
+check_os
+genjot_install_boss
